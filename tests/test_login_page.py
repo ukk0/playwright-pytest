@@ -1,44 +1,56 @@
 import pytest
 
-from playwright_models.login_page import LoginPage
 
-LOGIN_URL = "https://www.saucedemo.com/"
-SHOP_URL = "https://www.saucedemo.com/inventory.html"
+@pytest.mark.parametrize(
+    "username, password", [
+        ("standard_user", "secret_sauce"),
+        ("locked_out_user", "secret_sauce"),
+        ("not_registered_user", "secret_sauce"),
+        ("standard_user", "s3cr3ts4uc3"),
+        ("standard_user", ""),
+        ("", "secret_sauce")
+    ]
+)
+def test_valid_and_invalid_login_credentials(login_page, pages, username: str, password: str):
+    login_page.navigate_to_page(pages["LOGIN_PAGE"])
+    login_page.enter_credentials_and_try_login(
+        username=username, password=password
+    )
 
-
-@pytest.mark.parametrize("username", ["standard_user", "locked_out_user", "not_registered_user"])
-def test_successful_and_unsuccessful_login(page, playwright, username: str):
-    login = LoginPage(page, playwright)
-
-    # Navigate to login page
-    page.goto(url=LOGIN_URL)
-
-    # Try to log in user
-    login.login_user(username=username, password="secret_sauce")
     if username == "locked_out_user":
-        assert login.login_error_message.is_visible()
-        assert login.login_error_message.inner_text() == "Epic sadface: Sorry, this user has been locked out."
+        login_page.expect_login_error_with_text(
+            text="Epic sadface: Sorry, this user has been locked out."
+        )
+
     elif username == "not_registered_user":
-        assert login.login_error_message.is_visible()
-        assert login.login_error_message.inner_text() == "Epic sadface: Username and password do not match any user " \
-                                                         "in this service"
+        login_page.expect_login_error_with_text(
+            text="Epic sadface: Username and password do not match any user in this service"
+        )
+
+    elif password == "s3cr3ts4uc3":
+        login_page.expect_login_error_with_text(
+            text="Epic sadface: Username and password do not match any user in this service"
+        )
+
+    elif not password:
+        login_page.expect_login_error_with_text(
+            text="Epic sadface: Password is required"
+        )
+
+    elif not username:
+        login_page.expect_login_error_with_text(
+            text="Epic sadface: Username is required"
+        )
+
     else:
-        page.wait_for_url(url=SHOP_URL)
+        login_page.current_page_should_be(
+            expected_url=pages["INVENTORY_PAGE"], title="Products"
+        )
 
 
-def test_username_and_password_required(page, playwright, username: str = "standard_user"):
-    login = LoginPage(page, playwright)
+def test_login_required_to_access_app(login_page, pages):
+    login_page.navigate_to_page(url=pages["INVENTORY_PAGE"])
 
-    # Navigate to login page
-    page.goto(url=LOGIN_URL)
-
-    # Try to log in without providing username
-    login.login_button.click()
-    assert login.login_error_message.is_visible()
-    assert login.login_error_message.inner_text() == "Epic sadface: Username is required"
-
-    # Provide username and try without password
-    login.user_name_input.fill(username)
-    login.login_button.click()
-    assert login.login_error_message.is_visible()
-    assert login.login_error_message.inner_text() == "Epic sadface: Password is required"
+    login_page.expect_login_error_with_text(
+        text="Epic sadface: You can only access '/inventory.html' when you are logged in."
+)
