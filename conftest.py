@@ -7,7 +7,6 @@ from pages.navigation_page import NavigationPage
 from pages.shopping_cart_page import ShoppingCartPage
 
 
-@pytest.fixture
 def login_cookie():
     return {
         "name": "session-username",
@@ -17,7 +16,6 @@ def login_cookie():
     }
 
 
-@pytest.fixture
 def fill_cart_script():
     return "localStorage.setItem('cart-contents', '[0, 1, 2, 3, 4, 5]')"
 
@@ -42,19 +40,32 @@ def login_page(page, playwright):
 
 @pytest.fixture
 def inventory_page(page, playwright):
+    page.context.add_cookies([login_cookie()])
+    return InventoryPage(page, playwright)
+
+
+@pytest.fixture
+def inventory_page_with_filled_cart(page, playwright):
+    page.context.add_cookies([login_cookie()])
+    page.context.add_init_script(fill_cart_script())
     return InventoryPage(page, playwright)
 
 
 @pytest.fixture
 def navigation_page(page, playwright):
+    page.context.add_cookies([login_cookie()])
     return NavigationPage(page, playwright)
 
 
 @pytest.fixture
 def cart_page(page, playwright):
+    page.context.add_cookies([login_cookie()])
+    page.context.add_init_script(fill_cart_script())
     return ShoppingCartPage(page, playwright)
 
 
 @pytest.fixture
 def checkout_page(page, playwright):
+    page.context.add_cookies([login_cookie()])
+    page.context.add_init_script(fill_cart_script())
     return CheckoutPage(page, playwright)
