@@ -45,13 +45,6 @@ def inventory_page(page, playwright):
 
 
 @pytest.fixture
-def inventory_page_with_filled_cart(page, playwright):
-    page.context.add_cookies([login_cookie()])
-    page.context.add_init_script(fill_cart_script())
-    return InventoryPage(page, playwright)
-
-
-@pytest.fixture
 def navigation_page(page, playwright):
     page.context.add_cookies([login_cookie()])
     return NavigationPage(page, playwright)
