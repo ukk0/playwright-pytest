@@ -15,7 +15,7 @@ class CheckoutPage(BasePage):
         self.summary_subtotal_label = page.get_by_test_id("subtotal-label")
         self.summary_tax_label = page.get_by_test_id("tax-label")
         self.summary_total_label = page.get_by_test_id("total-label")
-        self.finish_payment_button = page.get_by_test_id("finish")
+        self.finish_order_button = page.get_by_test_id("finish")
         self.thank_you_heading = page.get_by_role(role="heading", name="Thank you for your order!")
         self.return_to_shop_button = page.get_by_test_id("back-to-products")
         self.cancel_checkout_button = page.get_by_test_id("cancel")
@@ -37,18 +37,20 @@ class CheckoutPage(BasePage):
     def cancel_checkout(self):
         self.cancel_checkout_button.click()
 
-    def finalize_payment(self):
-        self.finish_payment_button.click()
+    def finalize_order(self):
+        self.finish_order_button.click()
 
-    def return_to_shop(self):
-        self.return_to_shop_button.click()
+    def sum_of_all_item_prices(self):
+        return sum(
+            [float(price[1:]) for price in self.checkout_item_price.all_inner_texts()]
+        )
 
-    def validate_order_price_details(self):
-        sum_of_item_prices = sum([
-            float(price[1:]) for price in self.checkout_item_price.all_inner_texts()
-        ])
+    def validate_item_prices_match_subtotal(self, sum_of_prices: float) -> float:
         subtotal = float(self.summary_subtotal_label.inner_text().split("$")[1])
+        assert sum_of_prices == subtotal
+        return subtotal
+
+    def validate_subtotal_plus_tax_equal_total(self, subtotal: float):
         tax = float(self.summary_tax_label.inner_text().split("$")[1])
         total = float(self.summary_total_label.inner_text().split("$")[1])
-        assert sum_of_item_prices == subtotal
         assert subtotal + tax == total
