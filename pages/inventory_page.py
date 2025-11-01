@@ -49,6 +49,9 @@ class InventoryPage(BasePage):
         item_count = self.shopping_cart_items.inner_text()
         return int(item_count)
 
+    def verify_cart_has_no_items(self):
+        expect(self.shopping_cart_badge).to_be_empty()
+
     def verify_items_are_ordered_by_name(self, reverse: bool):
         items = self.inventory_item_names.all_inner_texts()
         assert items == sorted(items, reverse=reverse)
