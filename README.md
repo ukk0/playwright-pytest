@@ -25,12 +25,13 @@ It emphasizes:
 ## Project structure
 
 saucedemo-playwright-pytest/  
-├── pages/              # Page Object Models (POMs)  
-├── tests/              # Test files  
-├── conftest.py         # Shared fixtures and test setup  
+├── pages/$~~~~~~~~~~~~~$ # Page Object Models (POMs)  
+├── tests/$~~~~~~~~~~~~~~~$ # Test files  
+├── conftest.py$~~~~~~~$ # Shared fixtures and test setup  
 ├── requirements.txt  
 ├── pytest.ini  
 └── .pre-commit-config.yaml  
+└── .github/workflows/playwright-pytest-html.yml  
 
 ---
 
@@ -105,12 +106,17 @@ pre-commit run --all-files
 
 ---
 
-## Test reporting
+## Test reports and CI/CD
 
-(Coming soon. Framework and format TBD)
+This project uses pytest-html for generating HTML test reports, available locally and in CI. A simple GitHub Actions 
+workflow (manual trigger) runs the test suite, produces an HTML report, and uploads an artifact kept for 1 day
+(workflow defined in .github/workflows/playwright-pytest-html.yml).
 
----
+To run tests locally with report created:
 
-## CI/CD Integration
+```bash
+pytest --html=reports/report.html --self-contained-html
+```
 
-(Coming soon. GitHub Actions pipeline will be added together with reporting)
+In CI, the report is triggered via Actions > 'Playwright pytest-html' > Run workflow. The report can then be downloaded
+through the 'Upload report' step of the workflow.
